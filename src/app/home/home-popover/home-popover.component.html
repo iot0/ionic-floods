@@ -1,0 +1,5 @@
+<ion-list>
+  <ion-list-header>Settings</ion-list-header>
+  <ion-item button (click)="onLogin()" *ngIf="!(auth.user$ | async)">Login</ion-item>
+  <ion-item button *ngIf="auth.user$ | async" (click)="onLogout()">LogOut</ion-item>
+</ion-list>
