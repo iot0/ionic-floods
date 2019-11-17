@@ -3,39 +3,46 @@ import { Observable, of, Observer, BehaviorSubject } from "rxjs";
 import { Router } from "@angular/router";
 import { FirebaseService } from "./firebase.service";
 import { User, UserRole } from "../models/user";
-import { switchMap, shareReplay, filter, map, tap } from "rxjs/operators";
+import { switchMap, shareReplay, filter, map, tap, share, publish, takeLast } from "rxjs/operators";
+import { Device } from "../models/device";
 
 @Injectable({
   providedIn: "root"
 })
 export class AuthService {
   private uidSubject$: BehaviorSubject<string> = new BehaviorSubject(null);
-  user$: Observable<User> = this.uidSubject$.asObservable().pipe(
-    switchMap((x): Observable<User> => (x ? this.getUserData.call(this, x) : of(null))),
-    shareReplay()
-  );
+  user$: Observable<User>;
 
   isAdmin$: Observable<boolean>;
+
   collection: string = "Users";
 
   constructor(private firebase: FirebaseService, private router: Router) {
+    this.user$ = this.uidSubject$.asObservable().pipe(
+      switchMap((x): Observable<User> => (x ? this.getUserData.call(this, x) : of(null))),
+      shareReplay(1)
+    ) as any;
+
     this.isAdmin$ = this.user$.pipe(
       map(x => {
         return x ? x.role == UserRole.admin : false;
       })
     );
+  }
 
-    this.onInit()
-      .pipe(
-        tap(x => {
-          this.uidSubject$.next(x);
-        })
-      )
-      .subscribe();
+  validateUser() {
+    console.count("[Auth] [validateUser]");
+    return this.onInit().pipe(
+      tap(x => {
+        console.count("[Auth] [validateUser] [onInittap]");
+        this.uidSubject$.next(x);
+      })
+    );
   }
 
   onInit(): Observable<any> {
-    return this.firebase.init().pipe(
+    console.count("[Auth] [onInit]");
+    return this.firebase.init$.pipe(
       switchMap(({ firebase, app }) => {
         return Observable.create((obs: Observer<string>) => {
           app.auth().onAuthStateChanged(
@@ -51,6 +58,9 @@ export class AuthService {
             err => {
               console.error(err);
               obs.error(err);
+            },
+            () => {
+              obs.complete();
             }
           );
         });
@@ -64,7 +74,7 @@ export class AuthService {
 
   async googleSignIn() {
     try {
-      const { firebase, app } = await this.firebase.init().toPromise();
+      const { firebase, app } = await this.firebase.init$.toPromise();
 
       const provider = new (firebase.auth as any).GoogleAuthProvider();
       // const provider = new (app.auth() as any).GoogleAuthProvider();
@@ -80,9 +90,19 @@ export class AuthService {
   }
 
   getUserData(uid: string): Observable<User> {
-    console.count("getUseeData");
+    console.count("[Auth] [getUserData]");
     console.count(uid);
     return this.firebase.getDocument(this.collection, uid);
+    // return of({
+    //   deviceIp: "1232",
+    //   displayName: "Sachin M S",
+    //   email: "savigms2@gmail.com",
+    //   id: "jnN59MMkmwPhSIJCYJMbww4tde53",
+    //   photoURL: "https://lh3.googleusercontent.com/a-/AAuE7mAuiL24o3KNzE4ONAXQKr-3CNTuA6HG-dfR7vSV",
+    //   role: 1,
+    //   uid: "jnN59MMkmwPhSIJCYJMbww4tde53",
+    //   updatedAt: 1571467829192
+    // });
   }
 
   upsertUserData({ uid, email, displayName, photoURL, role }: User) {
@@ -98,12 +118,8 @@ export class AuthService {
   }
 
   async signOut() {
-    const { app } = await this.firebase.init().toPromise();
+    const { app } = await this.firebase.init$.toPromise();
     await app.auth().signOut();
     return this.router.navigate(["/"]);
-  }
-
-  addDeviceIp(uid: string, ip: string) {
-    return this.firebase.set(this.collection, uid, { deviceIp: ip });
   }
 }

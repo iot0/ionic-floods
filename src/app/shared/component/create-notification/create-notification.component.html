@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button fill="solid" (click)="onClose()" color="light" fill="outline">
+        Back
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Create Notification</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <form [formGroup]="createForm" novalidate autocomplete="off">
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>MESSAGE</h2>
+          </ion-text>
+        </ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-textarea formControlName="message" type="text" placeholder="Type your message here"></ion-textarea>
+      </ion-item>
+      <ion-button expand="full" (click)="onSubmit()">Submit</ion-button>
+    </form>
+  </ion-list>
+</ion-content>

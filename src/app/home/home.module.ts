@@ -6,7 +6,8 @@ import { RouterModule } from "@angular/router";
 
 import { HomePage } from "./home.page";
 import { HomePopoverComponent } from "./home-popover/home-popover.component";
-import { SharedModule } from '../shared/shared.module';
+import { SharedModule } from "../shared/shared.module";
+import { LocationModule } from "../shared";
 
 @NgModule({
   imports: [
@@ -19,7 +20,8 @@ import { SharedModule } from '../shared/shared.module';
         path: "",
         component: HomePage
       }
-    ])
+    ]),
+    LocationModule
   ],
   declarations: [HomePage, HomePopoverComponent],
   entryComponents: [HomePopoverComponent]

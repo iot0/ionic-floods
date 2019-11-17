@@ -1,5 +1,7 @@
 <ion-list>
-  <ion-list-header>Settings</ion-list-header>
   <ion-item button (click)="onLogin()" *ngIf="!(auth.user$ | async)">Login</ion-item>
+  <ion-item button (click)="onSubscribe()" *ngIf="(auth.user$ | async) && !(subscriptions.isSubscribed$ | async)">Subscribe</ion-item>
+  <ion-item button (click)="onUnSubscribe()" *ngIf="(auth.user$ | async) && subscriptions.isSubscribed$ | async">UnSubscribe</ion-item>
+  <ion-item button (click)="onDevices()" *ngIf="auth.isAdmin$ | async">Devices</ion-item>
   <ion-item button *ngIf="auth.user$ | async" (click)="onLogout()">LogOut</ion-item>
 </ion-list>

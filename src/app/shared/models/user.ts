@@ -4,7 +4,7 @@ export class User {
   displayName: string;
   photoURL: string;
   role?: UserRole;
-  deviceIp?: string;
+  token?: string;
 }
 
 export enum UserRole {

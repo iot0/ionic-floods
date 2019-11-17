@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar color="success" *ngIf="data$ | async as hdata" [color]="hdata?.color">
+  <ion-toolbar color="success" *ngIf="header$ | async as hdata" [color]="hdata?.color">
     <ion-buttons slot="start">
       <ion-button>
         <ion-icon slot="icon-only" [name]="hdata.icon"></ion-icon>
@@ -19,58 +19,40 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
+  <!-- <ion-button color="danger" (click)="testPush()">Test Push</ion-button> -->
   <ng-container *ngIf="data$ | async as res">
-    <ng-container *ngIf="!res.init; else ipFormTemp">
-      <ng-container *ngIf="res.data; else notificationTemp">
-        {{ res.data | json }}
-      </ng-container>
-
-      <ng-template #notificationTemp>
-        <ng-container *ngIf="res.error || res.empty; else loadingTemp">
-          <div class="app-align-center" [hidden]="!res.error">
-            Something went wrong , Try again later .
-            <ion-button color="warning" (click)="onConnect()">Refresh</ion-button>
-          </div>
-          <div class="app-align-center" [hidden]="!res.empty">
-            <ion-card>
-              <ion-card-header>
-                <ion-card-subtitle>No Data</ion-card-subtitle>
-                <ion-card-title>Please connect your device to see device sensor values.</ion-card-title>
-              </ion-card-header>
-
-              <ion-card-content>
-                <ion-button color="primary" (click)="onConnect()">Connect</ion-button>
-              </ion-card-content>
-            </ion-card>
-          </div>
-        </ng-container>
-      </ng-template>
+    <ng-container *ngIf="res.data; else notificationTemp">
+      <device-connect-card *ngFor="let device of res.data" [device]="device" (alert)="onDashboardAlert()"></device-connect-card>
     </ng-container>
+
+    <ng-template #notificationTemp>
+      <ng-container *ngIf="res.error || res.empty; else loadingTemp">
+        <div class="app-align-center" [hidden]="!res.error">
+          Something went wrong , Try again later .
+          <ion-button color="warning" (click)="loadDevices()">Refresh</ion-button>
+        </div>
+        <div class="app-align-center" [hidden]="!res.empty">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-subtitle>No Data</ion-card-subtitle>
+              <ion-card-title>Please connect your device to see device sensor values.</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+              <ion-button color="primary" routerLink="/device/create">Add device</ion-button>
+              <ion-button color="primary" (click)="loadDevices()">Refresh</ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </ng-container>
+    </ng-template>
+    <ion-fab vertical="top" horizontal="end" *ngIf="alert$ | async as alert">
+      <ion-fab-button color="secondary" (click)="onAlertToggle()">
+        <ion-icon [name]="alert.icon"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
   </ng-container>
 </ion-content>
-
-<ng-template #ipFormTemp>
-  <ion-list lines="inset">
-    <ion-item>
-      <ion-label>
-        <ion-text color="primary">
-          <h2>ADD YOUR DEVICE</h2>
-        </ion-text>
-        <p>Add your device ip in this field</p>
-      </ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-input placeholder="192.168.0.1" #input [value]="ip"></ion-input>
-      <!-- <ion-fab-button (click)="onSync(input.value)">
-              <ion-icon name="flash"></ion-icon>
-            </ion-fab-button> -->
-      <ion-fab-button (click)="onAddingDevice(input.value)">
-        OK
-      </ion-fab-button>
-    </ion-item>
-  </ion-list>
-</ng-template>
 
 <ng-template #loadingTemp>
   <div class="app-align-center h-100">

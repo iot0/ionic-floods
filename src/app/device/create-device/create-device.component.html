@@ -1,0 +1,87 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <ng-container *ngIf="editMode$ | async; else createMode">
+        Edit Device
+      </ng-container>
+      <ng-template #createMode>
+        Add Device
+      </ng-template>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <form [formGroup]="createForm" novalidate autocomplete="off">
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>NAME</h2>
+          </ion-text>
+        </ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-input formControlName="name" type="text" placeholder="Area 1"></ion-input>
+      </ion-item>
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>THRESHOLD</h2>
+          </ion-text>
+        </ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-input formControlName="threshold" type="number" placeholder="Enter device threshold"></ion-input>
+      </ion-item>
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>DEVICE IP</h2>
+          </ion-text>
+        </ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-input formControlName="ip" type="text" placeholder="192.168.0.1"></ion-input>
+      </ion-item>
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>LOCATION</h2>
+          </ion-text>
+          <p>Latitude and longitude .</p>
+        </ion-label>
+        <ion-fab-button
+          slot="end"
+          [appLocation]="createForm.get('latlng').value"
+          enableSelection
+          color="secondary"
+          (onSelect)="onLocationSelect($event)"
+        >
+          <ion-icon name="compass"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button slot="end" (click)="setTestLatLng()">
+          <ion-icon name="logo-reddit"></ion-icon>
+        </ion-fab-button>
+      </ion-item-divider>
+      <ion-item>
+        <ion-input [value]="createForm.get('latlng').value" type="text" placeholder="23.455,45.555" disabled></ion-input>
+        <input type="hidden" formControlName="latlng" />
+      </ion-item>
+      <ion-item-divider>
+        <ion-label>
+          <ion-text color="primary">
+            <h2>ADDRESS</h2>
+          </ion-text>
+        </ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-textarea formControlName="address" type="text" placeholder="Ulloor , Trivandrum"></ion-textarea>
+      </ion-item>
+      <ion-button expand="full" (click)="onSubmit()">Submit</ion-button>
+    </form>
+  </ion-list>
+</ion-content>

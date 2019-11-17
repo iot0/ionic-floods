@@ -3,6 +3,8 @@ import { AuthService } from "../shared/services/auth.service";
 import { NotificationService } from "../shared/services/notification.service";
 import { AlertController, PopoverController } from "@ionic/angular";
 import { HomePopoverComponent } from "./home-popover/home-popover.component";
+import { catchError, takeWhile } from "rxjs/operators";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: "app-home",
@@ -10,13 +12,16 @@ import { HomePopoverComponent } from "./home-popover/home-popover.component";
   styleUrls: ["home.page.scss"]
 })
 export class HomePage implements OnInit {
+  data$: BehaviorSubject<any> = new BehaviorSubject({ loading: true });
   currentPopover;
   drawerOptions: any;
   isAlive: boolean = true;
 
+  date= new Date();
+
   constructor(
     public alertController: AlertController,
-    private auth: AuthService,
+    public auth: AuthService,
     private notificationService: NotificationService,
     public popoverController: PopoverController
   ) {
@@ -26,6 +31,8 @@ export class HomePage implements OnInit {
       thresholdFromTop: 200,
       bounceBack: true
     };
+
+    this.loadDetails();
   }
 
   ngOnInit(): void {
@@ -37,7 +44,22 @@ export class HomePage implements OnInit {
     // watch subscriptions
     // this.watchSubscription();
   }
-
+  loadDetails() {
+    this.notificationService
+      .getAllNotifications()
+      .pipe(
+        catchError(err => {
+          this.data$.next({ error: true });
+          return err;
+        }),
+        takeWhile(() => this.isAlive)
+      )
+      .subscribe((res: any) => {
+        console.log(res);
+        if (res && res.length > 0) this.data$.next({ data: res });
+        else this.data$.next({ empty: true });
+      });
+  }
   async presentAlert(title: string, message: string) {
     const alert = await this.alertController.create({
       header: title,

@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Devices</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="data$ | async as res">
+    <ng-container *ngIf="res.data; else notificationTemplate">
+      <ion-list lines="inset">
+        <ion-item *ngFor="let data of res.data">
+          <ion-fab-button size="small" [appLocation]="data.latlng">
+            <ion-icon name="pin"></ion-icon>
+          </ion-fab-button>
+          <ion-label>
+            <h2>{{ data.name }}</h2>
+            <h3>{{ data.ip }}</h3>
+            <p>{{ data.address }}</p>
+            <p>Last Updated : {{ data.updatedAt | date: "d/M/yy, h:mm:s a" }}</p>
+          </ion-label>
+          <ion-button fill="outline" slot="end" [routerLink]="['/device/edit', data.id]">Edit</ion-button>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+    <ng-template #notificationTemplate>
+      <ng-container *ngIf="res.error || res.empty; else loadingTemplate">
+        <div class="app-align-center" [hidden]="!res.error">
+          Something went wrong , Try again later .
+        </div>
+        <div class="app-align-center" [hidden]="!res.empty">
+          List is empty.
+        </div>
+      </ng-container>
+      <ng-template #loadingTemplate>
+        <div class="app-align-center">
+          <ion-spinner name="lines"></ion-spinner>
+        </div>
+      </ng-template>
+    </ng-template>
+  </ng-container>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button routerLink="/device/create">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -11,14 +11,41 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Main Notification</ion-card-title>
-      <ion-card-subtitle>note.. </ion-card-subtitle>
-    </ion-card-header>
-  </ion-card>
+  <ng-container *ngIf="data$ | async as res">
+    <ng-container *ngIf="res.data; else notificationTemplate">
+      <ion-list lines="inset">
+        <ion-card *ngFor="let data of res.data">
+          <ion-item>
+            <ion-fab-button size="small" [appLocation]="data.latlng">
+              <ion-icon name="pin"></ion-icon>
+            </ion-fab-button>
+            <ion-label> {{ data.message }}</ion-label>
+            <ion-note slot="end">{{data.createdAt|date:'d/M/yy, h:mm a'}}</ion-note>
+          </ion-item>
+        </ion-card>
+      </ion-list>
+    </ng-container>
+    <ng-template #notificationTemplate>
+      <ng-container *ngIf="res.error || res.empty; else loadingTemplate">
+        <div class="app-align-center" [hidden]="!res.error">
+          Something went wrong , Try again later .
+        </div>
+        <div class="app-align-center" [hidden]="!res.empty">
+          List is empty.
+        </div>
+      </ng-container>
+      <ng-template #loadingTemplate>
+        <div class="app-align-center">
+          <ion-spinner name="lines"></ion-spinner>
+        </div>
+      </ng-template>
+    </ng-template>
+  </ng-container>
 </ion-content>
+<ion-footer>
+  <ion-toolbar></ion-toolbar>
+</ion-footer>
 
 <app-drawer [options]="drawerOptions" #drawer *ngIf="auth.isAdmin$ | async">
-  <app-device-connect [drawer]="drawer" [deviceIp]="(auth.user$ | async)?.deviceIp" [uid]="(auth.user$ | async)?.uid"></app-device-connect>
+  <app-device-connect [drawer]="drawer" [uid]="(auth.user$ | async)?.uid"></app-device-connect>
 </app-drawer>

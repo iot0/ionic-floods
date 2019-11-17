@@ -10,7 +10,8 @@ const routes: Routes = [
     loadChildren: () => import("./login/login.module").then(m => m.LoginPageModule),
     canLoad: [AuthGuard],
     canActivate: [AuthGuard]
-  }
+  },
+  { path: "device", loadChildren: () => import("./device/device.module").then(m => m.DevicePageModule) }
 ];
 
 @NgModule({

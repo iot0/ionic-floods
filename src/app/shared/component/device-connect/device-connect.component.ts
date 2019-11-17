@@ -1,11 +1,13 @@
 import { Component, OnInit, Input, OnDestroy, ChangeDetectionStrategy, OnChanges } from "@angular/core";
 import { DrawerComponent } from "../drawer/drawer.component";
-import { of, BehaviorSubject } from "rxjs";
+import { of, BehaviorSubject, Observable, combineLatest } from "rxjs";
 import { AuthService } from "../../services/auth.service";
 import { User } from "../../models/user";
 import { LoadingController } from "@ionic/angular";
-import { take, catchError, takeWhile } from "rxjs/operators";
+import { take, catchError, takeWhile, tap, filter, map } from "rxjs/operators";
 import { DeviceService } from "../../services/device.service";
+import { AudioService } from "../../services/audio.service";
+import { FIREBASE_CONFIG } from "src/firebase";
 
 @Component({
   selector: "app-device-connect",
@@ -18,8 +20,11 @@ export class DeviceConnectComponent implements OnInit, OnDestroy, OnChanges {
     this.isAlive = false;
   }
   user: User;
-
+  alarmKey: string = "alarm";
+  isMuted: boolean = false;
+  alert$: BehaviorSubject<any> = new BehaviorSubject({});
   data$: BehaviorSubject<any> = new BehaviorSubject({ empty: true });
+  header$: Observable<any>;
 
   defaultThreshold = {
     minTemp: 22,
@@ -32,13 +37,29 @@ export class DeviceConnectComponent implements OnInit, OnDestroy, OnChanges {
   @Input("drawer")
   drawer: DrawerComponent;
 
-  @Input("deviceIp") ip: string;
   @Input("uid") userId: string;
 
   isOpened: boolean;
   isAlive: boolean = true;
 
-  constructor(private auth: AuthService, public loadingController: LoadingController, private deviceService: DeviceService) {}
+  constructor(
+    private auth: AuthService,
+    public loadingController: LoadingController,
+    private deviceService: DeviceService,
+    private audioService: AudioService
+  ) {
+    this.header$ = combineLatest([this.data$, this.alert$]).pipe(
+      map(datas => {
+        let data = null;
+        if (datas[1] && datas[1].alert && !datas[1].muted) {
+          data = datas[1];
+        } else {
+          data = datas[0];
+        }
+        return data;
+      })
+    );
+  }
 
   ngOnInit() {
     if (this.drawer) {
@@ -46,12 +67,22 @@ export class DeviceConnectComponent implements OnInit, OnDestroy, OnChanges {
         this.onDrawerStateChange(change);
       });
     }
+    this.loadDevices();
+
+    this.audioService.preload(this.alarmKey, "/assets/alarm.mp3");
+
+    this.onAlert(false);
+
+    this.alert$.pipe(takeWhile(() => this.isAlive)).subscribe(res => {
+      if (res.alert && !res.muted) {
+        this.audioService.play(this.alarmKey);
+      } else {
+        this.audioService.stop(this.alarmKey);
+      }
+    });
   }
 
-  ngOnChanges(changes: import("@angular/core").SimpleChanges): void {
-    if (this.ip) this.onDeviceSetup();
-    else this.onDeviceInit();
-  }
+  ngOnChanges(changes: import("@angular/core").SimpleChanges): void {}
 
   //TODO: To show arrow accordingly for customer popup
   onDrawerStateChange(change) {
@@ -65,51 +96,94 @@ export class DeviceConnectComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  async onAddingDevice(newIp) {
-    const loading = await this.loadingController.create({
-      message: "Saving device info"
+  loadDevices() {
+    this.onDashboardLoading();
+
+    this.deviceService
+      .getAllDevices()
+      .pipe(
+        catchError(err => {
+          this.onDashboardError(err);
+          return err;
+        }),
+        takeWhile(() => this.isAlive)
+      )
+      .subscribe((res: any) => {
+        console.log(res);
+
+        if (res && res.length > 0) {
+          this.onDashboardData(res);
+        } else this.onDashboardEmpty();
+      });
+  }
+
+  onDashboardLoading() {
+    this.data$.next({ loading: true, message: "Loading...", icon: "pulse", color: "primary" });
+  }
+  onDashboardData(data) {
+    this.data$.next({ message: "Device Dashboard", data, icon: "logo-codepen", color: "dark" });
+  }
+  onDashboardError(err) {
+    this.data$.next({ message: "Loading Error", error: true, icon: "alert", color: "danger" });
+  }
+  onDashboardEmpty() {
+    this.data$.next({ message: "No Devices", empty: true, icon: "add", color: "secondary" });
+  }
+
+  onDashboardAlert() {
+    this.onAlert(true);
+  }
+
+  onAlertToggle() {
+    this.isMuted = !this.isMuted;
+    this.onAlert(false);
+  }
+
+  onAlert(enable: boolean = false) {
+    let { alert, muted } = this.alert$.value;
+
+    if (alert === enable && muted === this.isMuted) return;
+
+    this.alert$.next({
+      icon: this.isMuted ? "notifications-off" : "notifications",
+      color: "warning",
+      alert: enable,
+      muted: this.isMuted,
+      message: "Alert"
     });
-    await loading.present();
-
-    await this.auth.addDeviceIp(this.userId, newIp).toPromise();
-
-    this.auth.refreshUserData(this.userId);
-
-    await loading.dismiss();
   }
 
-  onConnect() {
-    this.onDeviceConnecting();
-    setTimeout(() => {
-      this.deviceService
-        .sync(this.ip)
-        .pipe(
-          catchError(err => {
-            this.onDeviceError(err);
-            return err;
-          }),
-          takeWhile(() => this.isAlive)
-        )
-        .subscribe(res => {
-          this.onDeviceData(res);
-          console.log(res);
-        });
-    }, 3000);
-  }
+  // testPush() {
+  //   var key = FIREBASE_CONFIG.messagingPublicKey;
+  //   var to =
+  //     "e0HRxL9YkI7aBJ6Bh8e4NX:APA91bF-X0UyWflR32-EMdlCEvH63RGePyfdoCOz1gKvH7eG85KJfv5_q1qjEN0DuYIRq7gkdhqSF9NUOKt-_1Ent7-nyPkPUP7oXu-N8tDCbRmsfaQufRWIGA12XCklXz3Mj73Q0qOb";
+  //   var notification = {
+  //     title: "Portugal vs. Denmark",
+  //     body: "5 to 1"
+  //   };
 
-  onDeviceConnecting() {
-    this.data$.next({ loading: true, message: "Device Connecting...", icon: "pulse", color: "primary" });
-  }
-  onDeviceData(data) {
-    this.data$.next({ message: "Device Connected", data, icon: "logo-codepen", color: "success" });
-  }
-  onDeviceError(err) {
-    this.data$.next({ message: "Device Error", error: true, icon: "alert", color: "danger" });
-  }
-  onDeviceInit() {
-    this.data$.next({ message: "Setup Device", init: true, icon: "cog", color: "secondary" });
-  }
-  onDeviceSetup() {
-    this.data$.next({ message: "Connect Device", empty: true, icon: "wifi", color: "warning" });
-  }
+  //   fetch("https://fcm.googleapis.com/fcm/send", {
+  //     method: "POST",
+  //     headers: {
+  //       Authorization: "key=" + key,
+  //       "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify({
+  //       to: to,
+  //       notification: notification,
+  //       data: {
+  //         message: "example"
+  //       }
+  //     })
+  //   })
+  //     .then(function(response) {
+  //       console.log(response);
+  //       response.json().then(function(result) {
+  //         console.log(result);
+  //       });
+  //     })
+  //     .catch(function(error) {
+  //       console.error(error);
+  //     });
+  // }
 }

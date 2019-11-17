@@ -5,5 +5,6 @@ export const FIREBASE_CONFIG = {
   projectId: "iotflood-ba2df",
   storageBucket: "iotflood-ba2df.appspot.com",
   messagingSenderId: "820048954515",
+  vapidKey:"BGtqb40tue71NJ0nALD9fLci4RcLtXfJqXgUbWgEVE_tLK1zlqbOZ7OfSbd4cLOXwaTYWDPX3P8Bsdk2v0yzvq8",
   appId: "1:820048954515:web:2a48f5ca2c8adfd791b966"
 };

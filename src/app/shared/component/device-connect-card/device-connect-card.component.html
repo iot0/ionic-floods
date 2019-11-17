@@ -1,0 +1,45 @@
+<ion-card>
+  <ion-item>
+    <ion-fab-button size="small" [appLocation]="device.latlng">
+      <ion-icon name="pin"></ion-icon>
+    </ion-fab-button>
+    <ion-label>
+      <h2>{{ device.name }}</h2>
+      <h3>{{ device.ip }}</h3>
+    </ion-label>
+  </ion-item>
+
+  <ion-card-content>
+    <ng-container *ngIf="data$ | async as res">
+      <ng-container *ngIf="res.loading">
+        <div class="app-align-center"><ion-spinner name="lines"></ion-spinner>connecting...</div>
+      </ng-container>
+
+      <ng-container *ngIf="res.data">
+        {{ res.data | json }}
+
+        <ion-item>
+          <ion-label>
+            <h3>Ultrasonic :{{ res.data.ultraSonic }}</h3>
+            <h3>Flow :{{ res.data.flowRate }}</h3>
+          </ion-label>
+        </ion-item>
+      </ng-container>
+
+      <!-- <ng-container *ngIf="res.notification"> -->
+        <ion-button color="primary" (click)="onCreateNotification()">Create Notification</ion-button>
+      <!-- </ng-container> -->
+
+      <ng-container *ngIf="res.notConnected">
+        <ion-button color="primary" (click)="onConnect()">Connect</ion-button>
+      </ng-container>
+
+      <ng-container *ngIf="res.error">
+        <div class="app-align-center" [hidden]="!res.error">
+          Something went wrong , Try again later .
+          <ion-button color="warning" (click)="onConnect()">Refresh</ion-button>
+        </div>
+      </ng-container>
+    </ng-container>
+  </ion-card-content>
+</ion-card>

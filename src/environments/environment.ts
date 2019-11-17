@@ -1,4 +1,4 @@
-import { FIREBASE_CONFIG } from '../firebase';
+import { FIREBASE_CONFIG } from "../firebase";
 
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
@@ -6,7 +6,8 @@ import { FIREBASE_CONFIG } from '../firebase';
 
 export const environment = {
   production: false,
-  firebase: FIREBASE_CONFIG
+  firebase: FIREBASE_CONFIG,
+  googleMapApiKey: "AIzaSyBzIro2tf6IiKET8mLqJg2K6US79UcMzSg"
 };
 
 /*
