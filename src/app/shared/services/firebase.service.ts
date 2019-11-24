@@ -123,37 +123,37 @@ export class FirebaseService {
 
   col$(ref) {
     return new Observable(obs => {
-      ref
-        .get()
-        .then(function(querySnapshot) {
+      let unsubscribe = ref.onSnapshot(
+        function(querySnapshot) {
           let datas = [];
           querySnapshot.forEach(x => {
             datas.push({ id: x.id, ...x.data() });
           });
           obs.next(datas);
-          obs.complete();
-        })
-        .catch(function(error) {
+        },
+        function(error) {
           obs.error(error);
-        });
+        }
+      );
+      return unsubscribe;
     });
   }
 
   doc$(ref) {
     return new Observable(obs => {
-      ref
-        .get()
-        .then(function(doc) {
+      let unsubscribe = ref.onSnapshot(
+        function(doc) {
           let data = null;
           if (doc.exists) {
             data = { id: doc.id, ...doc.data() };
           }
           obs.next(data);
-          //obs.complete();
-        })
-        .catch(function(error) {
+        },
+        function(error) {
           obs.error(error);
-        });
+        }
+      );
+      return unsubscribe;
     });
   }
 

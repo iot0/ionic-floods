@@ -4,7 +4,7 @@ import { Validators, FormGroup, FormBuilder } from "@angular/forms";
 import { ThemeService } from "src/app/shared/services/theme.service";
 import { DeviceService } from "src/app/shared/services/device.service";
 import { ActivatedRoute } from "@angular/router";
-import { tap, map } from "rxjs/operators";
+import { tap, map, take } from "rxjs/operators";
 import { BehaviorSubject } from "rxjs";
 
 @Component({
@@ -90,7 +90,7 @@ export class CreateDeviceComponent {
       let data = this.prepareSaveInfo();
 
       try {
-        let existing: Device[] = await this.deviceService.getDeviceByIp(data.ip).toPromise();
+        let existing: Device[] = await this.deviceService.getDeviceByIp(data.ip).pipe(take(1)).toPromise();
 
         if (existing.length > 0 && existing[0].id !== data.id) {
           this.themeService.alert("Info", "This ip already registered.");

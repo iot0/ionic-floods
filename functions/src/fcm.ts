@@ -7,7 +7,7 @@ export const onNewNotification = functions.firestore.document("Notifications/{no
   const notification: any = snapshot.data();
   const notificationId:string = context.params.notificationId;
   console.log(`New notification ${notificationId}`);
-
+  
   // 2) Send push notifications to the subscribed user
   // check for subscription
   const subscriptionsRef = await admin
@@ -25,6 +25,7 @@ export const onNewNotification = functions.firestore.document("Notifications/{no
       const title="FLOOD ALERT";
 
       const payload: admin.messaging.Message = {
+
         data: {
           title: title,
           body: notification.message,
@@ -37,7 +38,8 @@ export const onNewNotification = functions.firestore.document("Notifications/{no
             vibrate: [200, 100, 200]
           }
         },
-        token: subscription.token
+        token: subscription.token,
+        
       };
       await admin.messaging().send(payload);
     } else {
