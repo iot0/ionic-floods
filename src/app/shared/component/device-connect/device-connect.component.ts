@@ -130,8 +130,8 @@ export class DeviceConnectComponent implements OnInit, OnDestroy, OnChanges {
     this.data$.next({ message: "No Devices", empty: true, icon: "add", color: "secondary" });
   }
 
-  onDashboardAlert() {
-    this.onAlert(true);
+  onDashboardAlert(notification) {
+    this.onAlert(notification);
   }
 
   onAlertToggle() {

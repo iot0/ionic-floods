@@ -59,9 +59,9 @@ export class DeviceConnectCardComponent implements OnInit, OnDestroy {
 
     if (data.ultraSonic && data.ultraSonic > this.device.threshold) {
       notification = true;
-      this.onAlert.emit(true);
     }
-
+    
+    this.onAlert.emit(notification);
     this.data$.next({ data, notification });
   }
 

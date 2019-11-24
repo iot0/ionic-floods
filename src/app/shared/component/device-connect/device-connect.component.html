@@ -22,7 +22,7 @@
   <!-- <ion-button color="danger" (click)="testPush()">Test Push</ion-button> -->
   <ng-container *ngIf="data$ | async as res">
     <ng-container *ngIf="res.data; else notificationTemp">
-      <device-connect-card *ngFor="let device of res.data" [device]="device" (alert)="onDashboardAlert()"></device-connect-card>
+      <device-connect-card *ngFor="let device of res.data" [device]="device" (alert)="onDashboardAlert($event)"></device-connect-card>
     </ng-container>
 
     <ng-template #notificationTemp>
